@@ -1,21 +1,36 @@
 import { useState, useEffect } from 'react'
 import Player from "./components/Player"
 import Navbar from "./components/Navbar"
+import PlayerName from "./components/PlayerName"
 import {nanoid} from "nanoid"
 import './App.css'
 
-/*The object of Pig is to be the first player to earn 100 points.
-You achieve this by rolling the dice and adding which number you roll to your overall score.
-Players are permitted to roll as many times as they’d like during their turn, but beware of rolling a 1!
-Doing so will cost you all the points you’ve collected during your turn. */
-
 function App() {
-  const [players, setPlayers] = useState([{id: nanoid(), name: "Player 1", score: 0, isTurn: true}, {id: nanoid(),name: "Player 2", score: 0, isTurn: false}])
+  const [players, setPlayers] = useState([
+    {
+      id: nanoid(),
+      name: "Player 1", 
+      score: 0,
+      points: 0,
+      isTurn: true
+    }, 
+    {
+      id: nanoid(), 
+      name: "Player 2", 
+      score: 0,
+      points: 0,
+      isTurn: false
+  }])
+
   const [gameState, setGameState] = useState(0)
+  const [winner, setWinner] = useState("")
 
   useEffect(() => {
     for (let i = 0; i < players.length; i++) {
-      if (players[i].score >= 100) setGameState(2)
+      if (players[i].score >= 100) {
+        setGameState(3)
+        setWinner(players[i].name)
+      }
     }
   }, [players])
 
@@ -23,7 +38,13 @@ function App() {
     setPlayers(prevPlayers => {
       const newPlayers = [...prevPlayers]
       if(change == 1 && prevPlayers.length < 5) {
-        newPlayers.push({id: nanoid(), name: `Player ${prevPlayers.length+1}`, score: 0, isTurn: false})
+        newPlayers.push({
+            id: nanoid(), 
+            name: `Player ${prevPlayers.length+1}`, 
+            score: 0,
+            points: 0,
+            isTurn: false
+          })
       }
       else if (change == -1 && prevPlayers.length > 2) {
         newPlayers.pop()
@@ -34,22 +55,97 @@ function App() {
   }
 
   function restart() {
+    setGameState(2)
     setPlayers(prevPlayers => {
-      const newPlayers = [...prevPlayers]
-      for (let i = 0; i < prevPlayers; i++) {
-        newPlayers[i].score = 0
+      const newPlayers = []
+      for (let i = 0; i < prevPlayers.length; i++) {
+        newPlayers.push({...prevPlayers[i], score: 0, points:0, isTurn: false})
       }
+      newPlayers[0].isTurn = true
       return newPlayers
     })
+  }
+
+  function returnToMenu() {
     setGameState(0)
+    setPlayers(prevPlayers => {
+      const newPlayers = []
+      for (let i = 0; i < prevPlayers.length; i++) {
+        newPlayers.push({...prevPlayers[i], score: 0, points:0, isTurn: false, name: `Player ${i+1}`})
+      }
+      newPlayers[0].isTurn = true
+      return newPlayers
+    }) 
+  }
+
+  function chooseNames() {
+    setGameState(1)
   }
 
   function startGame() {
     setGameState(2)
   }
 
-  function handleRoll(event, value) {
-    console.log("roll handled")
+  function handleNameChange(id, newName) {
+    setPlayers(prevPlayers => {
+      const newPlayers = []
+        for (let i = 0; i < prevPlayers.length; i++) {
+          if (prevPlayers[i].id === id) {
+            newPlayers.push({...prevPlayers[i], name: newName})
+          }
+          else {
+            newPlayers.push({...prevPlayers[i]})
+          }
+        }
+        return newPlayers
+      })  
+  }
+
+  function nextTurn(id, hasRolledOne) {
+    setPlayers(prevPlayers => {
+      const newPlayers = []
+      let setNextTurn = false
+      for (let i = 0; i < prevPlayers.length; i++) {
+        if (prevPlayers[i].id === id) {
+          if (hasRolledOne) {
+            newPlayers.push({...prevPlayers[i], points: 0, isTurn: false})
+          }
+          else {
+            newPlayers.push({...prevPlayers[i], score: prevPlayers[i].score+prevPlayers[i].points, points: 0, isTurn: false})
+          }
+          setNextTurn = true
+        }
+        else if (setNextTurn) {
+          newPlayers.push({...prevPlayers[i], isTurn: true})
+          setNextTurn = false
+        }
+        else {
+          newPlayers.push({...prevPlayers[i]})
+        }
+      }
+
+      if (setNextTurn) {
+          newPlayers[0].isTurn = true
+          setNextTurn = false
+      }
+
+      return newPlayers
+    })
+  }
+
+  function addPoints(id, value) {
+    setPlayers(prevPlayers => {
+      const newPlayers = []
+      for (let i = 0; i < prevPlayers.length; i++) {
+        if (prevPlayers[i].id === id) {
+          newPlayers.push({...prevPlayers[i], points: prevPlayers[i].points+value})
+        }
+        else {
+          newPlayers.push({...prevPlayers[i]})
+        }
+      }
+      return newPlayers
+    })
   }
 
   let game = null
@@ -64,18 +160,42 @@ function App() {
             <h3>{players.length}</h3>
             <button onClick={() => updateNumberOfPlayers(1)}>{">"}</button>
           </div>
-          <div className="menu-buttons">
-            <h2>Number of AI: </h2>
-            <button>{"<"}</button>
-            <h3>0</h3>
-            <button>{">"}</button>
-          </div>
-          <button onClick={startGame}>Start Game</button>
+          <button onClick={chooseNames}>Continue</button>
         </div>
       )
       break
+        
+    case 1: 
+      const nameComponents = players.map(player => 
+        <PlayerName 
+          key={player.id} 
+          id={player.id} 
+          name={player.name}
+          handleChange={handleNameChange}
+          />)
+    
+      game = (
+        <div>
+          <div className='players-display'>
+            {nameComponents}
+          </div>
+          <button onClick={startGame}>Start Game</button>
+        </div>   
+      )
+      break
+
     case 2:
-      const playerComponents = players.map(player => <Player key={player.nanoid} score={player.score} name={player.name} isTurn={player.isTurn} handleRoll={handleRoll} />)
+      const playerComponents = players.map(player => 
+        <Player 
+          key={player.id} 
+          id={player.id} 
+          score={player.score} 
+          points={player.points} 
+          name={player.name} 
+          isTurn={player.isTurn} 
+          nextTurn={nextTurn}
+          addPoints={addPoints}
+        />)
     
       game = (
         <div className='players-display'>
@@ -83,19 +203,28 @@ function App() {
         </div>
       )
       break
+
     case 3:
       game = (
-        <h1>Win Screen</h1>
+        <>
+          <h1>Congratulations {winner}!</h1>
+          <h1>You won!</h1>
+        </>
       )
       break
   }
 
   return (
     <>
-      <Navbar restart={restart} />
+      <Navbar menu={returnToMenu} restart={restart} gameState={gameState}/>
       <div className='game-display'>
         {game}
       </div>
+      <h2>Rules</h2>
+      <p>The object of Pig is to be the first player to reach 100 score.</p>
+      <p>Players take turns having possession of the die, and will roll it to accumulate score.</p>
+      <p>Players are permitted to roll as many times as they would like to during their turn, but must beware of rolling a 1!</p>
+      <p>Doing so will cost the player all the points they have collected during their turn.</p>
     </>
   )
 }

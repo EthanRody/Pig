@@ -21,17 +21,18 @@ nav {
 
 .restart-button {
   font-size: 2em;
+  margin-left: 1rem;
 }
 
 .game-display {
-    border: 3px solid turquoise;
-    padding: 3rem 2rem;
+  border: 3px solid turquoise;
+  padding: 3rem 2rem;
 }
 
 .start-menu {
-      display: flex;
-      flex-direction: column;
-      place-items: center;
+  display: flex;
+  flex-direction: column;
+  place-items: center;
 }
 
 .menu-buttons {
@@ -58,14 +59,21 @@ nav {
   border: 2px solid orangered;
   border-radius: 2rem;
   padding: 1rem 0.7rem;
-  min-width: 10rem
+  min-width: 10rem;
+}
+
+.name-input {
+  background: transparent;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  text-align: center;
 }
 
 .die {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 1rem auto 0 auto;
+  margin: 1rem auto 1rem auto;
   border: 2px solid white;
   border-radius: 1rem;
   width: 2.5rem;
