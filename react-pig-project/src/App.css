@@ -6,6 +6,7 @@
 }
 
 nav {
+  user-select: none;
   display: flex;
   border: 3px solid turquoise;
 }
@@ -25,6 +26,7 @@ nav {
 }
 
 .game-display {
+  user-select: none;
   border: 3px solid turquoise;
   padding: 3rem 2rem;
 }

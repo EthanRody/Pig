@@ -2,21 +2,34 @@ import { useState } from "react"
 
 function Player(props) {
     const [value, setValue] = useState(4)
+    const [turnOver, setTurnOver] = useState(false)
 
-    function rollDie() {
-        const dieRoll = Math.ceil(Math.random()*6)
-        setValue(dieRoll)
+    function timeout(delay) {
+        return new Promise(res => setTimeout(res, delay))
+    }
 
-        if (dieRoll === 1) {
-            props.nextTurn(props.id, true)
+    async function rollDie() {
+        if (!turnOver) {
+            const dieRoll = Math.ceil(Math.random()*6)
+            setValue(dieRoll)
+
+            if (dieRoll === 1) {
+                setTurnOver(true)
+                await timeout(700)
+                setTurnOver(false)
+
+                props.nextTurn(props.id, true)
+            }
+            else {
+                props.addPoints(props.id, dieRoll)
+            } 
         }
-        else {
-            props.addPoints(props.id, dieRoll)
-        } 
     }
 
     function endTurn() {
-        props.nextTurn(props.id, false)
+        if (!turnOver) {
+            props.nextTurn(props.id, false)
+        }
     }
     
     return (
