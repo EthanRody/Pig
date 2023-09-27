@@ -1,4 +1,4 @@
 # Pig
-pig dice game created using React JS
+dice game website using pig ruleset created using ReactJS
 
-tan-level.surge.sh
+Link: tan-level.surge.sh
