@@ -12,6 +12,7 @@ function App() {
       name: "Player 1", 
       score: 0,
       points: 0,
+      type: "Player",
       isTurn: true
     }, 
     {
@@ -19,38 +20,42 @@ function App() {
       name: "Player 2", 
       score: 0,
       points: 0,
+      type: "AI",
       isTurn: false
   }])
 
   const [gameState, setGameState] = useState(0)
-  const [winner, setWinner] = useState("")
+  const [winner, setWinner] = useState({
+    name: "",
+    player: false
+  })
 
   useEffect(() => {
     for (let i = 0; i < players.length; i++) {
       if (players[i].score >= 100) {
         setGameState(3)
-        setWinner(players[i].name)
+        setWinner({ name: players[i].name, player: players[i].type !== "AI" })
       }
     }
   }, [players])
 
   function updateNumberOfPlayers(change) {
-    setPlayers(prevPlayers => {
-      const newPlayers = [...prevPlayers]
-      if(change == 1 && prevPlayers.length < 5) {
+    setPlayers((prevPlayers) => {
+      const newPlayers = [...prevPlayers];
+      if (change == 1 && prevPlayers.length < 5) {
         newPlayers.push({
-            id: nanoid(), 
-            name: `Player ${prevPlayers.length+1}`, 
-            score: 0,
-            points: 0,
-            isTurn: false
-          })
-      }
-      else if (change == -1 && prevPlayers.length > 2) {
-        newPlayers.pop()
+          id: nanoid(),
+          name: `Player ${prevPlayers.length + 1}`,
+          score: 0,
+          points: 0,
+          type: 'AI',
+          isTurn: false,
+        })
+      } else if (change == -1 && prevPlayers.length > 2) {
+        newPlayers.pop();
       }
 
-      return newPlayers
+      return newPlayers;
     })
   }
 
@@ -71,7 +76,7 @@ function App() {
     setPlayers(prevPlayers => {
       const newPlayers = []
       for (let i = 0; i < prevPlayers.length; i++) {
-        newPlayers.push({...prevPlayers[i], score: 0, points:0, isTurn: false, name: `Player ${i+1}`})
+        newPlayers.push({...prevPlayers[i], score: 0, type: prevPlayers[i].type, points:0, isTurn: false, name: `Player ${i+1}`})
       }
       newPlayers[0].isTurn = true
       return newPlayers
@@ -86,12 +91,17 @@ function App() {
     setGameState(2)
   }
 
-  function handleNameChange(id, newName) {
+  // Handles changing of player name in Game Settings Menu
+  function handlePlayerChange(id, change, newValue) {
     setPlayers(prevPlayers => {
       const newPlayers = []
         for (let i = 0; i < prevPlayers.length; i++) {
           if (prevPlayers[i].id === id) {
-            newPlayers.push({...prevPlayers[i], name: newName})
+            if (change == "name") newPlayers.push({...prevPlayers[i], name: newValue})
+            else {
+              if (prevPlayers[i].type == "AI") newPlayers.push({...prevPlayers[i], type: "Player"})
+              else newPlayers.push({...prevPlayers[i], type: "AI"}) 
+            }
           }
           else {
             newPlayers.push({...prevPlayers[i]})
@@ -101,6 +111,7 @@ function App() {
       })  
   }
 
+  // Handles changing of player turns
   function nextTurn(id, hasRolledOne) {
     setPlayers(prevPlayers => {
       const newPlayers = []
@@ -133,6 +144,7 @@ function App() {
     })
   }
 
+  // Modifies player points value
   function addPoints(id, value) {
     setPlayers(prevPlayers => {
       const newPlayers = []
@@ -150,6 +162,7 @@ function App() {
 
   let game = null
   switch(gameState) {
+    // Start Menu Screen
     case 0:
       game = (
         <div className='start-menu'>
@@ -165,14 +178,19 @@ function App() {
       )
       break
         
+    // Game Settings Menu Screen
     case 1: 
       const nameComponents = players.map(player => 
-        <PlayerName 
+        <div>
+          <PlayerName 
           key={player.id} 
           id={player.id} 
           name={player.name}
-          handleChange={handleNameChange}
-          />)
+          type={player.type}
+          handleChange={handlePlayerChange}
+          />
+        </div>
+        )
     
       game = (
         <div>
@@ -184,6 +202,7 @@ function App() {
       )
       break
 
+    // Game Screen
     case 2:
       const playerComponents = players.map(player => 
         <Player 
@@ -192,6 +211,7 @@ function App() {
           score={player.score} 
           points={player.points} 
           name={player.name} 
+          type={player.type}
           isTurn={player.isTurn} 
           nextTurn={nextTurn}
           addPoints={addPoints}
@@ -204,13 +224,25 @@ function App() {
       )
       break
 
+    // Game Finished Screen
     case 3:
-      game = (
-        <>
-          <h1>Congratulations {winner}!</h1>
-          <h1>You won!</h1>
-        </>
-      )
+      if (winner.player == true) {
+        game = (
+          <>
+            <h1>Congratulations {winner.name}!</h1>
+            <h1>You won!</h1>
+          </>
+        )
+      } else {
+        game = (
+          <>
+            <h1>Defeated!</h1>
+            <h1>Better luck next time!</h1>
+          </>
+        )
+      }
+
+      
       break
   }
 
@@ -224,7 +256,8 @@ function App() {
       <p>The object of Pig is to be the first player to reach 100 score.</p>
       <p>Players take turns having possession of the die, and will roll it to accumulate score.</p>
       <p>Players are permitted to roll as many times as they would like to during their turn, but must beware of rolling a 1!</p>
-      <p>Doing so will cost the player all the points they have collected during their turn.</p>
+      <p>Rolling a 1 will have the player lose all the points they accumulated during the current turn and their turn will immediately end.</p>
+      <p>Players can roll the die by clicking on the die image and end their turn by clicking the 'End Turn' button.</p>
     </>
   )
 }

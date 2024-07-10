@@ -1,4 +1,4 @@
-import logo from "../assets/react.svg"
+import logo from "../assets/die-icon.png"
 
 function Navbar(props) {
     return (
