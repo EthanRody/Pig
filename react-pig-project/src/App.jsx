@@ -5,7 +5,10 @@ import PlayerName from "./components/PlayerName"
 import {nanoid} from "nanoid"
 import './App.css'
 
+
+// main app function
 function App() {
+  // holds all info on players
   const [players, setPlayers] = useState([
     {
       id: nanoid(),
@@ -24,12 +27,14 @@ function App() {
       isTurn: false
   }])
 
+  // holds game state, used to determine which screen to display
   const [gameState, setGameState] = useState(0)
   const [winner, setWinner] = useState({
     name: "",
     player: false
   })
 
+  // checks if a player has won
   useEffect(() => {
     for (let i = 0; i < players.length; i++) {
       if (players[i].score >= 100) {
@@ -39,6 +44,7 @@ function App() {
     }
   }, [players])
 
+  // changes the number of players by +-1
   function updateNumberOfPlayers(change) {
     setPlayers((prevPlayers) => {
       const newPlayers = [...prevPlayers];
@@ -59,6 +65,7 @@ function App() {
     })
   }
 
+  // sets app to game state 2 (Game Screen), resets player scores 
   function restart() {
     setGameState(2)
     setPlayers(prevPlayers => {
@@ -71,22 +78,25 @@ function App() {
     })
   }
 
+  // sets app to game state 0 (Start Menu), resets player data 
   function returnToMenu() {
     setGameState(0)
     setPlayers(prevPlayers => {
       const newPlayers = []
       for (let i = 0; i < prevPlayers.length; i++) {
-        newPlayers.push({...prevPlayers[i], score: 0, type: prevPlayers[i].type, points:0, isTurn: false, name: `Player ${i+1}`})
+        newPlayers.push({...prevPlayers[i], score: 0, points:0, isTurn: false, name: `Player ${i+1}`})
       }
       newPlayers[0].isTurn = true
       return newPlayers
     }) 
   }
 
+  // sets app to game state 1 (Game Settings Menu)
   function chooseNames() {
     setGameState(1)
   }
 
+  // sets app to game state 2 (Game Screen)
   function startGame() {
     setGameState(2)
   }
@@ -160,9 +170,10 @@ function App() {
     })
   }
 
+  // Switch statement controls which screen is displayed in center box
   let game = null
   switch(gameState) {
-    // Start Menu Screen
+    // Start Menu Screen: number of players selected
     case 0:
       game = (
         <div className='start-menu'>
@@ -170,15 +181,15 @@ function App() {
           <div className="menu-buttons" >
             <h2>Number of Players: </h2>
             <button onClick={() => updateNumberOfPlayers(-1)}>{"<"}</button>
-            <h3>{players.length}</h3>
+            <h3 className='single-num'>{players.length}</h3>
             <button onClick={() => updateNumberOfPlayers(1)}>{">"}</button>
           </div>
-          <button onClick={chooseNames}>Continue</button>
+          <button className='settings-button' onClick={chooseNames}>Continue</button>
         </div>
       )
       break
         
-    // Game Settings Menu Screen
+    // Game Settings Menu Screen: player name selected, ai/user control selected
     case 1: 
       const nameComponents = players.map(player => 
         <div>
@@ -193,16 +204,16 @@ function App() {
         )
     
       game = (
-        <div>
+        <>
           <div className='players-display'>
             {nameComponents}
           </div>
-          <button onClick={startGame}>Start Game</button>
-        </div>   
+          <button className='settings-button' onClick={startGame}>Start Game</button>
+        </>   
       )
-      break
+      break 
 
-    // Game Screen
+    // Game Screen: gameplay occurs
     case 2:
       const playerComponents = players.map(player => 
         <Player 
@@ -224,21 +235,22 @@ function App() {
       )
       break
 
-    // Game Finished Screen
+    // Game Finished Screen: return to game state 2 or 0
     case 3:
+      // checks if ai or user won
       if (winner.player == true) {
         game = (
-          <>
+          <div className='end-text'>
             <h1>Congratulations {winner.name}!</h1>
             <h1>You won!</h1>
-          </>
+          </div>
         )
       } else {
         game = (
-          <>
+          <div className='end-text'>
             <h1>Defeated!</h1>
             <h1>Better luck next time!</h1>
-          </>
+          </div>
         )
       }
 
@@ -246,6 +258,7 @@ function App() {
       break
   }
 
+  // main html
   return (
     <>
       <Navbar menu={returnToMenu} restart={restart} gameState={gameState}/>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+// Player component control actions of each player in game state 2
 function Player(props) {
     const [value, setValue] = useState(0)
     const [turnOver, setTurnOver] = useState(false)
@@ -38,7 +39,7 @@ function Player(props) {
         }
     }
 
-    // AI logic
+    // AI logic, generated random number and acts based on number generated
     useEffect(() => {
         if (props.type === "AI" && props.isTurn && !turnOver) {
             let randomNum = Math.random()
@@ -84,7 +85,6 @@ function Player(props) {
 
     return (
         <div>
-            
             {<div className={determineClassName()}>
                 <h2>Type: {props.type}</h2>
                 <h2>{props.name}</h2>
@@ -92,7 +92,7 @@ function Player(props) {
                 <h3>Points: {props.points}</h3>
             </div>}
             {props.isTurn && <h2 className="die" onClick={rollDie}>{value}</h2>}
-            {props.isTurn && props.type != "AI" && <button onClick={endTurn}>End Turn</button>}
+            <button onClick={endTurn} className={`end-button ${props.isTurn && props.type != "AI"? '': 'hidden'}`}>End Turn</button>
         </div>
     )    
 }

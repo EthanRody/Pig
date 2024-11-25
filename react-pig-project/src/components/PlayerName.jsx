@@ -1,3 +1,4 @@
+// Controls changing of player name
 function PlayerName(props) {
     function handleNameChange(event) {
         const {value} = event.target
